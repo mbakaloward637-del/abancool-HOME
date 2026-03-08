@@ -17,6 +17,26 @@ export default function Footer() {
         </div>
       </div>
 
+      {/* Offices bar */}
+      <div className="bg-hero border-b border-hero-foreground/10">
+        <div className="container-max px-4 lg:px-8 py-10">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-2xl">
+            {[
+              { city: "Nairobi", address: "CBD, Tom Mboya Street, Kenya" },
+              { city: "Kerugoya", address: "Kerugoya Town Center, Kenya" },
+            ].map((o) => (
+              <div key={o.city} className="flex items-start gap-3">
+                <MapPin className="w-5 h-5 text-hero-foreground/30 flex-shrink-0 mt-0.5" />
+                <div>
+                  <h4 className="font-heading font-bold text-hero-foreground text-lg">{o.city}</h4>
+                  <p className="text-hero-foreground/50 text-sm">{o.address}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
       {/* Main Footer */}
       <div className="bg-hero text-hero-foreground">
         <div className="container-max section-padding !py-16">
@@ -40,10 +60,11 @@ export default function Footer() {
               <h4 className="font-heading font-bold text-sm uppercase tracking-wider mb-5 text-accent">Services</h4>
               <div className="space-y-2.5 text-sm opacity-60">
                 <Link to="/services/web-development" className="block hover:opacity-100 hover:text-accent transition-all">Web Development</Link>
-                <Link to="/services/software-development" className="block hover:opacity-100 hover:text-accent transition-all">Software Development</Link>
+                <Link to="/services/hotel-management" className="block hover:opacity-100 hover:text-accent transition-all">Hotel Management</Link>
+                <Link to="/services/pos-system" className="block hover:opacity-100 hover:text-accent transition-all">POS System</Link>
+                <Link to="/services/hospital-management" className="block hover:opacity-100 hover:text-accent transition-all">Hospital Management</Link>
                 <Link to="/hosting" className="block hover:opacity-100 hover:text-accent transition-all">Web Hosting</Link>
                 <Link to="/domains" className="block hover:opacity-100 hover:text-accent transition-all">Domain Registration</Link>
-                <Link to="/services/bulk-sms" className="block hover:opacity-100 hover:text-accent transition-all">Bulk SMS</Link>
               </div>
             </div>
 
@@ -78,8 +99,12 @@ export default function Footer() {
         </div>
 
         <div className="border-t border-hero-foreground/10">
-          <div className="container-max px-4 lg:px-8 py-5 text-center text-xs opacity-40">
-            © {new Date().getFullYear()} Abancool Technology. All rights reserved.
+          <div className="container-max px-4 lg:px-8 py-5 flex flex-col md:flex-row items-center justify-between text-xs opacity-40 gap-2">
+            <span>© {new Date().getFullYear()} Abancool Technology. All rights reserved.</span>
+            <div className="flex gap-4">
+              <Link to="/contact" className="hover:opacity-100 transition-opacity">Terms & Conditions</Link>
+              <Link to="/contact" className="hover:opacity-100 transition-opacity">Privacy Policy</Link>
+            </div>
           </div>
         </div>
       </div>

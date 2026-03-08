@@ -1,7 +1,7 @@
 import { useParams, Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { CheckCircle2, ArrowRight, Code, Cpu, GraduationCap, MessageSquare, CreditCard } from "lucide-react";
+import { CheckCircle2, ArrowRight, Code, Cpu, GraduationCap, MessageSquare, CreditCard, Hotel, ShoppingCart, HeartPulse, Plane } from "lucide-react";
 import heroImg from "@/assets/hero-developers.jpg";
 
 const serviceData: Record<string, { icon: typeof Code; title: string; desc: string; features: string[]; details: string }> = {
@@ -18,6 +18,34 @@ const serviceData: Record<string, { icon: typeof Code; title: string; desc: stri
     desc: "Custom business systems and enterprise software solutions.",
     details: "We develop custom software solutions including ERPs, CRMs, inventory management systems, and workflow automation tools. Our solutions are scalable, secure, and built to streamline your business operations.",
     features: ["Custom ERP Systems", "CRM Development", "Inventory Management", "Workflow Automation", "API Development", "Database Design", "System Integration", "Cloud Deployment"],
+  },
+  "hotel-management": {
+    icon: Hotel,
+    title: "Hotel Management System",
+    desc: "Complete hotel booking, room management, and guest portal solutions.",
+    details: "Our hotel management system covers everything from online booking and room management to guest check-in/check-out, housekeeping schedules, and revenue tracking. Integrated with M-Pesa and card payments for seamless billing.",
+    features: ["Online Booking Engine", "Room Management", "Guest Check-in/Check-out", "Housekeeping Management", "Revenue & Reports", "M-Pesa Payment Integration", "Guest Portal", "Multi-Property Support"],
+  },
+  "pos-system": {
+    icon: ShoppingCart,
+    title: "POS System",
+    desc: "Point of sale systems for retail, restaurants, and hospitality.",
+    details: "Our POS system is designed for Kenyan businesses — retail shops, supermarkets, restaurants, and hospitality. Supports M-Pesa integration, receipt printing, inventory tracking, and real-time sales reporting.",
+    features: ["Sales & Billing", "Inventory Tracking", "M-Pesa Integration", "Receipt Printing", "Multi-Branch Support", "Staff Management", "Sales Reports & Analytics", "Barcode Scanning"],
+  },
+  "hospital-management": {
+    icon: HeartPulse,
+    title: "Hospital Management System",
+    desc: "Patient records, billing, pharmacy, and lab management.",
+    details: "A comprehensive hospital management system covering patient registration, electronic medical records, pharmacy management, lab results, billing with insurance support (NHIF/SHA), and appointment scheduling.",
+    features: ["Patient Registration", "Electronic Medical Records", "Pharmacy Management", "Lab Management", "Billing & Insurance (NHIF/SHA)", "Appointment Scheduling", "Doctor Portal", "Reports & Analytics"],
+  },
+  "travel-booking": {
+    icon: Plane,
+    title: "Travel Booking System",
+    desc: "Flight, hotel, and tour booking platforms with payment integration.",
+    details: "Build a complete travel booking platform for flights, hotels, safaris, and tours. Features include search and booking, M-Pesa/card payments, itinerary management, and customer portal with booking history.",
+    features: ["Flight Booking", "Hotel Reservations", "Safari & Tour Packages", "M-Pesa & Card Payments", "Itinerary Management", "Customer Portal", "Admin Dashboard", "Multi-Currency Support"],
   },
   "school-management": {
     icon: GraduationCap,

@@ -1,11 +1,15 @@
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Code, Server, GraduationCap, MessageSquare, CreditCard, Globe, Cpu, Cloud, ArrowRight } from "lucide-react";
+import { Code, Server, GraduationCap, MessageSquare, CreditCard, Globe, Cpu, Cloud, ArrowRight, Hotel, ShoppingCart, HeartPulse, Plane } from "lucide-react";
 import heroImg from "@/assets/hero-developers.jpg";
 
 const services = [
   { icon: Code, title: "Website Development", desc: "Custom responsive websites and web applications built with modern frameworks and technologies.", link: "/services/web-development" },
   { icon: Cpu, title: "Software Development", desc: "Custom business systems, ERPs, inventory management, and automation software.", link: "/services/software-development" },
+  { icon: Hotel, title: "Hotel Management System", desc: "Complete hotel booking, room management, guest portal, and revenue tracking.", link: "/services/hotel-management" },
+  { icon: ShoppingCart, title: "POS System", desc: "Point of sale systems for retail, restaurants, supermarkets, and hospitality.", link: "/services/pos-system" },
+  { icon: HeartPulse, title: "Hospital Management System", desc: "Patient records, billing, pharmacy, lab, and appointment management.", link: "/services/hospital-management" },
+  { icon: Plane, title: "Travel Booking System", desc: "Flight, hotel, safari, and tour booking platforms with payment integration.", link: "/services/travel-booking" },
   { icon: GraduationCap, title: "School Management Systems", desc: "Complete student, fees, results, and parent portal management solutions.", link: "/services/school-management" },
   { icon: CreditCard, title: "Payment Integration", desc: "M-Pesa, PayPal, and card payment gateway integration for your business.", link: "/services/payment-integration" },
   { icon: MessageSquare, title: "Bulk SMS Platform", desc: "Marketing, transactional, and OTP SMS solutions with developer API.", link: "/services/bulk-sms" },

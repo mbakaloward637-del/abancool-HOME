@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 import { motion, useInView } from "framer-motion";
 import { useRef, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Server, Code, Globe, MessageSquare, CreditCard, Shield, ArrowRight, CheckCircle2, Quote } from "lucide-react";
+import { Server, Code, Globe, MessageSquare, CreditCard, Shield, ArrowRight, CheckCircle2, Quote, Hotel, ShoppingCart, HeartPulse, Plane, MapPin } from "lucide-react";
 import heroImg from "@/assets/hero-developers.jpg";
 import aboutCoding from "@/assets/about-coding.jpg";
 import aboutServers from "@/assets/about-servers.jpg";
@@ -32,19 +32,22 @@ function Counter({ end, suffix = "" }: { end: number; suffix?: string }) {
 
 /* ── Data ── */
 const services = [
-  { icon: Code, title: "Web\nDevelopment", desc: "Custom responsive websites built with modern technologies and best practices." },
-  { icon: Server, title: "Web\nHosting", desc: "Fast, secure SSD hosting with 99.9% uptime guarantee and daily backups." },
-  { icon: Globe, title: "Domain\nRegistration", desc: "Register .com, .co.ke, .africa and more at competitive prices." },
-  { icon: MessageSquare, title: "Bulk SMS\nPlatform", desc: "Marketing, transactional, and OTP SMS solutions with developer API." },
-  { icon: CreditCard, title: "Payment\nIntegration", desc: "M-Pesa, PayPal, and card payment gateway integration for your business." },
-  { icon: Shield, title: "Software\nDevelopment", desc: "Custom business systems, ERPs, school management, and automation software." },
+  { icon: Code, title: "Web\nDevelopment", desc: "Custom responsive websites built with modern technologies and best practices.", link: "/services/web-development" },
+  { icon: Server, title: "Web\nHosting", desc: "Fast, secure SSD hosting with 99.9% uptime guarantee and daily backups.", link: "/hosting" },
+  { icon: Globe, title: "Domain\nRegistration", desc: "Register .com, .co.ke, .africa and more at competitive prices.", link: "/domains" },
+  { icon: Hotel, title: "Hotel Management\nSystem", desc: "Complete hotel booking, room management, and guest portal solutions.", link: "/services/hotel-management" },
+  { icon: ShoppingCart, title: "POS\nSystem", desc: "Point of sale systems for retail, restaurants, and hospitality businesses.", link: "/services/pos-system" },
+  { icon: HeartPulse, title: "Hospital\nManagement", desc: "Patient records, billing, pharmacy, and lab management systems.", link: "/services/hospital-management" },
+  { icon: Plane, title: "Travel Booking\nSystem", desc: "Flight, hotel, and tour booking platforms with payment integration.", link: "/services/travel-booking" },
+  { icon: CreditCard, title: "Payment\nIntegration", desc: "M-Pesa, PayPal, and card payment gateway integration for your business.", link: "/services/payment-integration" },
+  { icon: Shield, title: "Software\nDevelopment", desc: "Custom business systems, ERPs, school management, and automation software.", link: "/services/software-development" },
 ];
 
 const projects = [
-  { title: "School Management System", category: "Education", img: aboutCoding },
-  { title: "E-Commerce Platform", category: "Web Development", img: datacenter },
+  { title: "Hotel Management System", category: "Hospitality", img: aboutCoding },
+  { title: "Hospital Records Platform", category: "Healthcare", img: datacenter },
   { title: "M-Pesa Payment Gateway", category: "Integration", img: aboutServers },
-  { title: "Corporate Website", category: "Web Development", img: heroImg },
+  { title: "Travel Booking Portal", category: "Tourism", img: heroImg },
 ];
 
 const testimonials = [
@@ -71,19 +74,14 @@ const fadeRight = {
 export default function HomePage() {
   return (
     <>
-      {/* ═══════ HERO — Full viewport, XtraTheme style ═══════ */}
+      {/* ═══════ HERO ═══════ */}
       <section className="relative min-h-[90vh] flex items-center overflow-hidden">
         <div className="absolute inset-0">
           <img src={heroImg} alt="Developers at work" className="w-full h-full object-cover" />
           <div className="absolute inset-0 bg-hero/70" />
         </div>
         <div className="relative container-max px-4 lg:px-8 py-20">
-          <motion.div
-            className="max-w-3xl"
-            initial={{ opacity: 0, y: 50 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-          >
+          <motion.div className="max-w-3xl" initial={{ opacity: 0, y: 50 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }}>
             <p className="text-accent font-bold text-sm uppercase tracking-[0.25em] mb-4">
               It's who we are. It's what we do.
             </p>
@@ -113,7 +111,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ═══════ ABOUT SECTION — Image collage + text ═══════ */}
+      {/* ═══════ ABOUT SECTION ═══════ */}
       <section className="section-padding bg-background overflow-hidden">
         <div className="container-max">
           <div className="grid lg:grid-cols-2 gap-16 items-center">
@@ -160,7 +158,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ═══════ SERVICES — XtraTheme card style ═══════ */}
+      {/* ═══════ SERVICES ═══════ */}
       <section className="section-padding bg-section-alt">
         <div className="container-max">
           <div className="text-center mb-16">
@@ -176,9 +174,7 @@ export default function HomePage() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-0 border border-border">
             {services.map((s, i) => (
               <motion.div key={s.title} initial="hidden" whileInView="visible" viewport={{ once: true }} custom={i} variants={fadeUp}>
-                <Link to={i < 2 ? (i === 0 ? "/services/web-development" : "/hosting") : i === 2 ? "/domains" : i === 3 ? "/services/bulk-sms" : i === 4 ? "/services/payment-integration" : "/services/software-development"}
-                  className="service-card block h-full border-r border-b group"
-                >
+                <Link to={s.link} className="service-card block h-full border-r border-b group">
                   <div className="w-14 h-14 rounded-sm bg-accent/10 flex items-center justify-center mb-5 group-hover:bg-accent transition-colors duration-500">
                     <s.icon className="w-7 h-7 text-accent group-hover:text-accent-foreground transition-colors duration-500" />
                   </div>
@@ -191,7 +187,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ═══════ PROJECTS — Hover overlay style ═══════ */}
+      {/* ═══════ PROJECTS ═══════ */}
       <section className="section-padding bg-background">
         <div className="container-max">
           <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-6">
@@ -208,7 +204,7 @@ export default function HomePage() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             {projects.map((p, i) => (
               <motion.div key={p.title} initial="hidden" whileInView="visible" viewport={{ once: true }} custom={i} variants={fadeUp}>
-                <div className="project-card h-80 rounded-sm">
+                <div className="project-card group h-80 rounded-sm">
                   <img src={p.img} alt={p.title} className="w-full h-full object-cover transition-transform duration-700" />
                   <div className="project-overlay rounded-sm">
                     <span className="text-accent text-xs font-bold uppercase tracking-wider">{p.category}</span>
@@ -221,7 +217,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ═══════ COUNTER STATS — Dark section with image ═══════ */}
+      {/* ═══════ COUNTER STATS ═══════ */}
       <section className="relative overflow-hidden">
         <div className="absolute inset-0">
           <img src={datacenter} alt="Infrastructure" className="w-full h-full object-cover" />
@@ -287,9 +283,9 @@ export default function HomePage() {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-0 max-w-4xl mx-auto border border-border">
             {[
-              { name: "Starter", price: "3,000", features: ["5GB SSD", "20GB Bandwidth", "Free SSL", "5 Emails"] },
-              { name: "Business", price: "6,000", features: ["20GB SSD", "Unlimited BW", "Free SSL", "Unlimited Emails"], popular: true },
-              { name: "Professional", price: "12,000", features: ["50GB SSD", "Unlimited BW", "Daily Backups", "10 Websites"] },
+              { name: "Starter", price: "500", features: ["5GB SSD", "20GB Bandwidth", "Free SSL", "5 Emails"] },
+              { name: "Business", price: "1,500", features: ["20GB SSD", "Unlimited BW", "Free SSL", "Unlimited Emails"], popular: true },
+              { name: "Professional", price: "3,000", features: ["50GB SSD", "Unlimited BW", "Daily Backups", "10 Websites"] },
             ].map((plan, i) => (
               <motion.div
                 key={plan.name}
@@ -307,22 +303,18 @@ export default function HomePage() {
                 )}
                 <h3 className="font-heading font-bold text-lg mb-1">{plan.name}</h3>
                 <div className="flex items-baseline gap-1 mb-6">
-                  <span className={`text-3xl font-heading font-bold ${plan.popular ? "text-accent" : "text-accent"}`}>KSh {plan.price}</span>
+                  <span className="text-3xl font-heading font-bold text-accent">KSh {plan.price}</span>
                   <span className={`text-sm ${plan.popular ? "text-hero-foreground/60" : "text-muted-foreground"}`}>/year</span>
                 </div>
                 <ul className="space-y-3 mb-8">
                   {plan.features.map((f) => (
                     <li key={f} className={`flex items-center gap-2 text-sm ${plan.popular ? "text-hero-foreground/80" : "text-muted-foreground"}`}>
-                      <CheckCircle2 className={`w-4 h-4 flex-shrink-0 ${plan.popular ? "text-accent" : "text-accent"}`} /> {f}
+                      <CheckCircle2 className="w-4 h-4 flex-shrink-0 text-accent" /> {f}
                     </li>
                   ))}
                 </ul>
                 <Link to="/hosting">
-                  <Button className={`w-full rounded-sm font-semibold uppercase text-xs tracking-wider ${
-                    plan.popular
-                      ? "bg-accent text-accent-foreground hover:bg-accent/90"
-                      : "bg-accent text-accent-foreground hover:bg-accent/90"
-                  }`}>
+                  <Button className="w-full rounded-sm font-semibold uppercase text-xs tracking-wider bg-accent text-accent-foreground hover:bg-accent/90">
                     Get Started
                   </Button>
                 </Link>
@@ -333,6 +325,38 @@ export default function HomePage() {
             <Link to="/hosting" className="text-accent text-sm font-semibold uppercase tracking-wider hover:underline inline-flex items-center gap-1">
               View all plans <ArrowRight className="w-3 h-3" />
             </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* ═══════ OFFICES — XtraTheme style ═══════ */}
+      <section className="relative overflow-hidden">
+        <div className="absolute inset-0 bg-hero" />
+        <div className="relative container-max px-4 lg:px-8 py-20">
+          <div className="text-center mb-12">
+            <span className="section-label justify-center !text-accent">Our Offices</span>
+            <h2 className="font-heading text-3xl md:text-4xl font-bold text-hero-foreground">
+              Where To <span className="text-accent">Find Us</span>
+            </h2>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-0 max-w-3xl mx-auto border border-hero-foreground/10">
+            {[
+              { city: "Nairobi", address: "CBD, Tom Mboya Street", country: "Kenya" },
+              { city: "Kerugoya", address: "Kerugoya Town Center", country: "Kenya" },
+            ].map((office) => (
+              <motion.div
+                key={office.city}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                className="p-10 border-r last:border-r-0 border-hero-foreground/10 text-center relative"
+              >
+                <MapPin className="w-10 h-10 text-hero-foreground/20 mx-auto mb-4" />
+                <h3 className="font-heading text-2xl font-bold text-hero-foreground mb-2">{office.city}</h3>
+                <p className="text-hero-foreground/50 text-sm">{office.address}</p>
+                <p className="text-hero-foreground/30 text-xs uppercase tracking-wider mt-1">{office.country}</p>
+              </motion.div>
+            ))}
           </div>
         </div>
       </section>
