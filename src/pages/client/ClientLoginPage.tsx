@@ -16,13 +16,30 @@ export default function ClientLoginPage() {
   const [form, setForm] = useState({ name: "", email: "", phone: "", password: "", confirmPassword: "" });
 
   useEffect(() => {
+    const handlePostLoginRedirect = () => {
+      // Check if user was ordering a hosting plan
+      const savedPlan = sessionStorage.getItem("selected_hosting_plan");
+      if (savedPlan) {
+        sessionStorage.removeItem("selected_hosting_plan");
+        navigate("/hosting"); // They'll click Order Now again while logged in
+        return;
+      }
+      // Check if user was registering domains
+      const savedCart = sessionStorage.getItem("domain_cart");
+      if (savedCart) {
+        navigate("/domains");
+        return;
+      }
+      navigate("/client/dashboard");
+    };
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (session) {
-        navigate("/client/dashboard");
+        handlePostLoginRedirect();
       }
     });
     supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) navigate("/client/dashboard");
+      if (session) handlePostLoginRedirect();
     });
     return () => subscription.unsubscribe();
   }, [navigate]);
