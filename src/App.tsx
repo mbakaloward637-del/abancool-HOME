@@ -69,6 +69,7 @@ const App = () => (
             <Route path="/client/login" element={<ClientLoginPage />} />
             <Route path="/client/dashboard" element={<ClientDashboardLayout />}>
               <Route index element={<DashboardOverview />} />
+              <Route path="cpanel" element={<ClientCpanel />} />
               <Route path="hosting" element={<ClientHosting />} />
               <Route path="domains" element={<ClientDomains />} />
               <Route path="invoices" element={<ClientInvoices />} />
