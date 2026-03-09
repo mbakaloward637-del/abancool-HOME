@@ -151,7 +151,7 @@ export default function HostingPage() {
             <p className="text-muted-foreground mt-3 max-w-lg mx-auto">All plans include free setup, cPanel, and 30-day money back guarantee.</p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-0 border border-border">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-0 border border-border">
             {plans.map((plan, i) => (
               <motion.div
                 key={plan.name}
