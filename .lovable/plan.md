@@ -1,368 +1,441 @@
 
 
-# Kiro Prompt: cPanel / WHMCS / DirectAdmin Backend Integration
+# PHP + MySQL Backend Integration Prompt for Kiro
 
-Here is your complete, copy-paste-ready prompt for Kiro:
+Here is a complete, copy-paste-ready prompt that covers every page in your Abancool Technology app and tells Kiro exactly how to build the PHP/MySQL backend end-to-end.
 
 ---
 
-```text
-PROJECT: Abancool Technology — cPanel / WHMCS / DirectAdmin Behind-the-Scenes Integration
+## Full Kiro Prompt
 
-Build PHP REST API endpoints that integrate with WHM (cPanel), WHMCS, and DirectAdmin APIs.
-The React frontend calls these endpoints via fetch(). All responses are JSON.
-These endpoints handle hosting provisioning, panel SSO, usage stats, and billing sync.
+```text
+PROJECT: Abancool Technology — PHP + MySQL Backend Integration
+
+Build a complete PHP REST API backend with MySQL database for the Abancool Technology
+web hosting management platform. The React frontend communicates via fetch() to a
+base URL like https://api.abancool.com (configurable). All responses are JSON.
+Use PDO for database access. Use PHP sessions or JWT (Firebase JWT library) for auth.
+Passwords hashed with password_hash() / password_verify().
 
 ────────────────────────────────────────────
-DIRECTORY STRUCTURE (add to existing backend/)
+DIRECTORY STRUCTURE
 ────────────────────────────────────────────
 
 backend/
-├── services/
-│   ├── WHMService.php            # WHM/cPanel API wrapper
-│   ├── DirectAdminService.php    # DirectAdmin API wrapper
-│   └── WHMCSService.php          # WHMCS API wrapper
+├── config/
+│   ├── database.php          # PDO connection (host, db, user, pass from env)
+│   └── cors.php              # CORS headers for React frontend
+├── middleware/
+│   ├── auth.php              # JWT verification middleware
+│   └── admin.php             # Admin role check middleware
 ├── api/
-│   ├── cpanel/
-│   │   ├── sso.php               # GET /api/cpanel/sso
-│   │   ├── stats.php             # GET /api/cpanel/stats
-│   │   └── status.php            # GET /api/cpanel/status
-│   ├── provisioning/
-│   │   └── provision.php         # POST /api/provisioning/provision
+│   ├── auth/
+│   │   ├── register.php      # POST /api/auth/register
+│   │   ├── login.php         # POST /api/auth/login
+│   │   ├── google.php        # POST /api/auth/google (Google OAuth)
+│   │   ├── logout.php        # POST /api/auth/logout
+│   │   ├── forgot-password.php
+│   │   └── reset-password.php
+│   ├── profile/
+│   │   ├── get.php           # GET /api/profile
+│   │   └── update.php        # PUT /api/profile
+│   ├── hosting/
+│   │   ├── plans.php         # GET /api/hosting/plans
+│   │   ├── orders.php        # GET /api/hosting/orders (user's orders)
+│   │   └── purchase.php      # POST /api/hosting/purchase
+│   ├── domains/
+│   │   ├── list.php          # GET /api/domains (user's domains)
+│   │   ├── search.php        # GET /api/domains/search?q=example
+│   │   ├── register.php      # POST /api/domains/register
+│   │   ├── renew.php         # POST /api/domains/renew
+│   │   └── dns.php           # GET/PUT /api/domains/{id}/dns
+│   ├── invoices/
+│   │   ├── list.php          # GET /api/invoices
+│   │   ├── detail.php        # GET /api/invoices/{id}
+│   │   └── download.php      # GET /api/invoices/{id}/pdf
 │   ├── payments/
-│   │   ├── mpesa-stk.php         # POST /api/payments/mpesa
-│   │   ├── mpesa-callback.php    # POST /api/payments/mpesa/callback
-│   │   ├── stripe-intent.php     # POST /api/payments/stripe/intent
-│   │   └── stripe-webhook.php    # POST /api/payments/stripe/webhook
-│   └── whmcs/
-│       └── sync.php              # POST /api/whmcs/sync
+│   │   ├── history.php       # GET /api/payments
+│   │   ├── mpesa-stk.php     # POST /api/payments/mpesa (initiate STK push)
+│   │   ├── mpesa-callback.php# POST /api/payments/mpesa/callback
+│   │   ├── stripe-intent.php # POST /api/payments/stripe/intent
+│   │   └── stripe-webhook.php# POST /api/payments/stripe/webhook
+│   ├── support/
+│   │   ├── tickets.php       # GET /api/support/tickets
+│   │   ├── create.php        # POST /api/support/tickets
+│   │   ├── detail.php        # GET /api/support/tickets/{id}
+│   │   └── reply.php         # POST /api/support/tickets/{id}/reply
+│   ├── cpanel/
+│   │   ├── status.php        # GET /api/cpanel/status (check active hosting)
+│   │   ├── stats.php         # GET /api/cpanel/stats (disk, cpu, email, db usage)
+│   │   └── sso.php           # GET /api/cpanel/sso (generate cPanel SSO login URL)
+│   ├── contact/
+│   │   └── submit.php        # POST /api/contact (public contact form)
+│   └── admin/
+│       ├── dashboard.php     # GET /api/admin/dashboard (stats)
+│       ├── clients.php       # GET /api/admin/clients
+│       ├── hosting-plans.php # GET/POST/PUT/DELETE /api/admin/hosting-plans
+│       ├── orders.php        # GET/PUT /api/admin/orders (activate, suspend)
+│       ├── invoices.php      # GET/POST /api/admin/invoices
+│       ├── payments.php      # GET /api/admin/payments
+│       ├── tickets.php       # GET/PUT /api/admin/tickets
+│       ├── domains.php       # GET /api/admin/domains
+│       └── activity.php      # GET /api/admin/activity (recent activity log)
+└── .env                      # DB_HOST, DB_NAME, DB_USER, DB_PASS, JWT_SECRET,
+                              # MPESA_CONSUMER_KEY, MPESA_CONSUMER_SECRET, MPESA_SHORTCODE,
+                              # MPESA_PASSKEY, STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET,
+                              # CPANEL_WHM_HOST, CPANEL_WHM_TOKEN, GOOGLE_CLIENT_ID
 
 ────────────────────────────────────────────
-SERVICE: WHMService.php
+MySQL DATABASE SCHEMA
 ────────────────────────────────────────────
 
-Class WHMService handles all WHM API calls. Constructor takes WHM_HOST, WHM_PORT, WHM_TOKEN from env.
-Auth header for all requests: "Authorization: whm root:{WHM_TOKEN}"
-Base URL: https://{WHM_HOST}:{WHM_PORT}/json-api/
+CREATE DATABASE abancool_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
-Methods:
+-- Users
+CREATE TABLE users (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(100) NOT NULL,
+  email VARCHAR(255) NOT NULL UNIQUE,
+  phone VARCHAR(20),
+  company VARCHAR(100),
+  password_hash VARCHAR(255) NOT NULL,
+  google_id VARCHAR(100) NULL,
+  avatar_url VARCHAR(500),
+  role ENUM('client','admin') DEFAULT 'client',
+  email_verified_at DATETIME NULL,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
 
-1. createAccount(string $username, string $domain, string $plan, string $contactemail): array
-   - POST /json-api/createacct
-   - Params: username, domain, plan, contactemail, reseller=0
-   - Returns: { success: bool, cpanel_url: string, username: string }
-   - Generate username: first 8 chars of domain name (alphanumeric only), check uniqueness
+-- Hosting Plans (admin-managed)
+CREATE TABLE hosting_plans (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(50) NOT NULL,
+  slug VARCHAR(50) NOT NULL UNIQUE,
+  description TEXT,
+  price_monthly DECIMAL(10,2) NOT NULL,
+  price_yearly DECIMAL(10,2),
+  disk_space_gb INT DEFAULT 5,
+  bandwidth_gb INT DEFAULT 20,
+  email_accounts INT DEFAULT 5,
+  databases_count INT DEFAULT 3,
+  features JSON DEFAULT '[]',
+  is_active BOOLEAN DEFAULT TRUE,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
 
-2. suspendAccount(string $username, string $reason): array
-   - POST /json-api/suspendacct
-   - Params: user={username}, reason={reason}
+-- Hosting Orders
+CREATE TABLE hosting_orders (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  user_id INT NOT NULL,
+  plan_id INT NOT NULL,
+  domain VARCHAR(255),
+  status ENUM('pending','active','suspended','cancelled','expired') DEFAULT 'pending',
+  billing_cycle ENUM('monthly','yearly') DEFAULT 'monthly',
+  amount_paid DECIMAL(10,2) DEFAULT 0,
+  payment_method ENUM('mpesa','stripe','bank_transfer'),
+  payment_reference VARCHAR(100),
+  cpanel_username VARCHAR(50),
+  cpanel_url VARCHAR(500),
+  starts_at DATETIME,
+  expires_at DATETIME,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+  FOREIGN KEY (plan_id) REFERENCES hosting_plans(id)
+);
 
-3. unsuspendAccount(string $username): array
-   - POST /json-api/unsuspendacct
-   - Params: user={username}
+-- Domains
+CREATE TABLE domains (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  user_id INT NOT NULL,
+  name VARCHAR(255) NOT NULL,
+  extension VARCHAR(20) NOT NULL,
+  nameservers VARCHAR(500) DEFAULT 'ns1.abancool.com, ns2.abancool.com',
+  auto_renew BOOLEAN DEFAULT TRUE,
+  status ENUM('active','expiring','expired','pending') DEFAULT 'active',
+  registered_at DATETIME,
+  expires_at DATETIME,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
 
-4. terminateAccount(string $username): array
-   - POST /json-api/removeacct
-   - Params: user={username}
+-- DNS Records
+CREATE TABLE dns_records (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  domain_id INT NOT NULL,
+  type ENUM('A','AAAA','CNAME','MX','TXT','NS','SRV') NOT NULL,
+  name VARCHAR(255) NOT NULL,
+  value VARCHAR(500) NOT NULL,
+  ttl INT DEFAULT 3600,
+  priority INT,
+  FOREIGN KEY (domain_id) REFERENCES domains(id) ON DELETE CASCADE
+);
 
-5. getAccountStats(string $username): array
-   - GET /json-api/accountsummary?user={username}
-   - Parse and return: {
-       disk_used_mb, disk_limit_mb,
-       bandwidth_used_mb, bandwidth_limit_mb,
-       email_accounts, email_limit,
-       databases, database_limit,
-       addon_domains, parked_domains,
-       suspended: bool, plan: string
-     }
+-- Invoices
+CREATE TABLE invoices (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  invoice_number VARCHAR(20) NOT NULL UNIQUE,
+  user_id INT NOT NULL,
+  service_type VARCHAR(50) NOT NULL,
+  service_description VARCHAR(255),
+  amount DECIMAL(10,2) NOT NULL,
+  status ENUM('paid','unpaid','overdue','cancelled') DEFAULT 'unpaid',
+  issued_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  due_at DATETIME NOT NULL,
+  paid_at DATETIME,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
 
-6. createSession(string $username): string
-   - POST /json-api/create_user_session
-   - Params: user={username}, service=cpaneld
-   - Returns: the SSO URL string (one-time login URL)
-   - This is the key method — user clicks "Open cPanel" → frontend calls
-     GET /api/cpanel/sso → this method runs → returns URL → frontend
-     opens URL in new tab → user is auto-logged into cPanel
+-- Payments
+CREATE TABLE payments (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  user_id INT NOT NULL,
+  invoice_id INT,
+  method ENUM('mpesa','stripe','paypal','bank_transfer') NOT NULL,
+  reference VARCHAR(100),
+  amount DECIMAL(10,2) NOT NULL,
+  currency VARCHAR(5) DEFAULT 'KES',
+  status ENUM('pending','completed','failed') DEFAULT 'pending',
+  mpesa_receipt VARCHAR(50),
+  stripe_payment_id VARCHAR(100),
+  paid_at DATETIME,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+  FOREIGN KEY (invoice_id) REFERENCES invoices(id) ON DELETE SET NULL
+);
 
-7. listAccounts(): array
-   - GET /json-api/listaccts
-   - Returns array of all accounts on server
+-- Support Tickets
+CREATE TABLE support_tickets (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  ticket_number VARCHAR(20) NOT NULL UNIQUE,
+  user_id INT NOT NULL,
+  department ENUM('billing','technical','sales') NOT NULL,
+  subject VARCHAR(255) NOT NULL,
+  status ENUM('open','in_progress','waiting','closed') DEFAULT 'open',
+  priority ENUM('low','medium','high','urgent') DEFAULT 'medium',
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
 
-────────────────────────────────────────────
-SERVICE: DirectAdminService.php
-────────────────────────────────────────────
+-- Ticket Replies
+CREATE TABLE ticket_replies (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  ticket_id INT NOT NULL,
+  user_id INT NOT NULL,
+  message TEXT NOT NULL,
+  is_staff BOOLEAN DEFAULT FALSE,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (ticket_id) REFERENCES support_tickets(id) ON DELETE CASCADE,
+  FOREIGN KEY (user_id) REFERENCES users(id)
+);
 
-Class DirectAdminService handles DirectAdmin API calls.
-Constructor takes DA_HOST, DA_PORT (default 2222), DA_ADMIN_USER, DA_ADMIN_PASSWORD or DA_API_KEY from env.
-Auth: Basic auth with admin credentials, or Login-Key header.
-Base URL: https://{DA_HOST}:{DA_PORT}/
+-- Contact Form Submissions
+CREATE TABLE contact_messages (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(100) NOT NULL,
+  email VARCHAR(255) NOT NULL,
+  phone VARCHAR(20),
+  message TEXT NOT NULL,
+  is_read BOOLEAN DEFAULT FALSE,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
 
-Methods:
+-- Activity Log
+CREATE TABLE activity_log (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  user_id INT,
+  action VARCHAR(255) NOT NULL,
+  details TEXT,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
+);
 
-1. createAccount(string $username, string $domain, string $package, string $email, string $password): array
-   - POST /CMD_API_ACCOUNT_USER
-   - Params: action=create, add=Submit, username, domain, package, email, passwd={password}, passwd2={password}, ip=shared, notify=yes
-   - Returns: { success: bool, username: string }
-
-2. suspendAccount(string $username): array
-   - POST /CMD_API_SELECT_USERS
-   - Params: location=CMD_SELECT_USERS, suspend=Suspend, select0={username}
-
-3. unsuspendAccount(string $username): array
-   - POST /CMD_API_SELECT_USERS
-   - Params: location=CMD_SELECT_USERS, unsuspend=Unsuspend, select0={username}
-
-4. deleteAccount(string $username): array
-   - POST /CMD_API_SELECT_USERS
-   - Params: confirmed=Confirm, delete=yes, select0={username}
-
-5. getAccountStats(string $username): array
-   - GET /CMD_API_SHOW_USER_USAGE?user={username}
-   - Parse and return same structure as WHM stats
-
-6. createLoginUrl(string $username): string
-   - POST /CMD_API_LOGIN_KEYS
-   - Create a one-time login key for the user
-   - Build URL: https://{DA_HOST}:{DA_PORT}/CMD_LOGIN?username={username}&key={login_key}
-   - This is the DirectAdmin equivalent of cPanel SSO
-   - When user clicks "Open DirectAdmin" → this URL opens in new tab
-
-7. listAccounts(): array
-   - GET /CMD_API_SHOW_ALL_USERS
-   - Returns array of all user accounts
-
-────────────────────────────────────────────
-SERVICE: WHMCSService.php
-────────────────────────────────────────────
-
-Class WHMCSService handles WHMCS API calls (headless billing sync).
-Constructor takes WHMCS_URL, WHMCS_API_IDENTIFIER, WHMCS_API_SECRET from env.
-All requests: POST to WHMCS_URL with params:
-  identifier={WHMCS_API_IDENTIFIER}&secret={WHMCS_API_SECRET}&action={action}&responsetype=json
-
-Methods:
-
-1. addClient(array $data): int
-   - action=AddClient
-   - Params: firstname, lastname, email, phonenumber, password2 (auto-generated)
-   - Returns: WHMCS client ID
-
-2. getClientByEmail(string $email): ?array
-   - action=GetClients, search={email}
-   - Returns client data or null
-
-3. addOrder(int $clientId, int $productId, string $domain, string $billingCycle, string $paymentMethod): int
-   - action=AddOrder
-   - Params: clientid, pid={productId}, domain, billingcycle (monthly|annually), paymentmethod (mailin)
-   - Returns: WHMCS order ID
-
-4. acceptOrder(int $orderId): bool
-   - action=AcceptOrder
-   - Params: orderid
-   - This activates the order in WHMCS
-
-5. addInvoicePayment(int $invoiceId, string $transactionId, float $amount, string $gateway): bool
-   - action=AddInvoicePayment
-   - Params: invoiceid, transid, amount, gateway (mpesa|stripe)
-
-6. getClientProducts(int $clientId): array
-   - action=GetClientsProducts
-   - Params: clientid
-   - Returns list of products/services
-
-────────────────────────────────────────────
-API ENDPOINT: GET /api/cpanel/sso
-────────────────────────────────────────────
-
-Requires: JWT auth (logged-in user)
-Logic:
-1. Get user ID from JWT
-2. Query hosting_orders WHERE user_id = {user_id} AND status = 'active' LIMIT 1
-3. If no active order → return { error: "No active hosting", redirect: "/client/dashboard/hosting" }
-4. Read hosting_orders.panel_type column:
-   - If 'cpanel' → use WHMService::createSession(cpanel_username) → return { url, panel: "cpanel" }
-   - If 'directadmin' → use DirectAdminService::createLoginUrl(cpanel_username) → return { url, panel: "directadmin" }
-5. Frontend receives URL → window.open(url, '_blank')
-6. User is auto-logged into their panel. No credentials needed.
-
-────────────────────────────────────────────
-API ENDPOINT: GET /api/cpanel/stats
-────────────────────────────────────────────
-
-Requires: JWT auth
-Logic:
-1. Get active hosting order for user
-2. If no active order → return null
-3. Based on panel_type:
-   - 'cpanel' → WHMService::getAccountStats(cpanel_username)
-   - 'directadmin' → DirectAdminService::getAccountStats(cpanel_username)
-4. Return JSON: {
-     disk: { used_mb, limit_mb, percent },
-     bandwidth: { used_mb, limit_mb, percent },
-     email: { count, limit },
-     databases: { count, limit },
-     plan_name, status, panel_type,
-     expires_at
-   }
-
-────────────────────────────────────────────
-API ENDPOINT: POST /api/provisioning/provision
-────────────────────────────────────────────
-
-Called internally after payment confirmation. NOT user-facing.
-Input: { hosting_order_id: int }
-Logic:
-1. Load hosting_order with plan details and user info
-2. Generate unique username (first 8 alphanumeric chars of domain)
-3. Determine panel_type from hosting_plans.panel_type column (default: 'cpanel')
-4. If panel_type = 'cpanel':
-   - WHMService::createAccount(username, domain, plan_slug, user_email)
-   - cpanel_url = "https://{WHM_HOST}:2083"
-5. If panel_type = 'directadmin':
-   - Generate random password
-   - DirectAdminService::createAccount(username, domain, package, email, password)
-   - cpanel_url = "https://{DA_HOST}:2222"
-6. Update hosting_orders SET:
-   - status = 'active'
-   - cpanel_username = {generated username}
-   - cpanel_url = {panel url}
-   - starts_at = NOW()
-   - expires_at = NOW() + billing_cycle interval (1 month or 1 year)
-7. Optionally sync to WHMCS:
-   - WHMCSService::addClient or getClientByEmail
-   - WHMCSService::addOrder
-   - WHMCSService::acceptOrder
-8. Log to activity_log
-9. Send email confirmation to user (optional)
+-- Seed default plans
+INSERT INTO hosting_plans (name, slug, description, price_monthly, price_yearly,
+  disk_space_gb, bandwidth_gb, email_accounts, databases_count, features) VALUES
+('Starter','starter','Personal websites & blogs',420,4200,5,20,5,3,
+  '["1 Website","Free SSL","Daily Backups","24/7 Support"]'),
+('Standard','standard','Growing businesses',1200,12000,20,100,15,10,
+  '["5 Websites","Free SSL","Daily Backups","Priority Support","Free Domain"]'),
+('Business','business','High-traffic websites',2500,25000,50,250,50,25,
+  '["Unlimited Websites","Free SSL","Hourly Backups","Priority Support","Free Domain","Staging Environment"]'),
+('Enterprise','enterprise','Maximum power',5000,50000,100,500,100,50,
+  '["Unlimited Websites","Free SSL","Real-time Backups","Dedicated Support","Free Domain","Staging Environment","Dedicated IP"]');
 
 ────────────────────────────────────────────
-API ENDPOINT: POST /api/payments/mpesa (STK Push)
+PAGE-BY-PAGE API MAPPING
 ────────────────────────────────────────────
 
-Requires: JWT auth
-Input: { invoice_id: int, phone: string }
-Logic:
-1. Load invoice, verify it belongs to user and status = 'unpaid'
-2. Format phone: ensure 254XXXXXXXXX format
-3. Get M-Pesa OAuth token:
-   GET https://api.safaricom.co.ke/oauth/v1/generate?grant_type=client_credentials
-   Auth: Basic base64(MPESA_CONSUMER_KEY:MPESA_CONSUMER_SECRET)
-4. Send STK push:
-   POST https://api.safaricom.co.ke/mpesa/stkpush/v1/processrequest
-   Body: {
-     BusinessShortCode: MPESA_SHORTCODE,
-     Password: base64(MPESA_SHORTCODE + MPESA_PASSKEY + timestamp),
-     Timestamp: YYYYMMDDHHmmss,
-     TransactionType: "CustomerPayBillOnline",
-     Amount: invoice.amount,
-     PartyA: phone,
-     PartyB: MPESA_SHORTCODE,
-     PhoneNumber: phone,
-     CallBackURL: MPESA_CALLBACK_URL,
-     AccountReference: invoice.invoice_number,
-     TransactionDesc: "Payment for " + invoice.service_description
-   }
-5. Create payments record: status='pending', method='mpesa'
-6. Return { success: true, checkout_request_id }
+1. LOGIN / REGISTER PAGE (ClientLoginPage.tsx)
+   - POST /api/auth/register  → {name, email, phone, password}
+     Returns: {token, user}
+   - POST /api/auth/login     → {email, password}
+     Returns: {token, user}
+   - POST /api/auth/google    → {google_token}
+     Verify with Google, create/find user, return {token, user}
+   - POST /api/auth/forgot-password → {email}
+   - POST /api/auth/reset-password  → {token, password}
+   Frontend: Store JWT in localStorage, send as Authorization: Bearer <token>
+
+2. DASHBOARD OVERVIEW (DashboardOverview.tsx)
+   - GET /api/hosting/orders       → count active services
+   - GET /api/domains              → count active domains
+   - GET /api/invoices?status=unpaid → pending invoices
+   - GET /api/payments             → sum total spent
+   - GET /api/invoices?limit=5     → recent invoices table
+
+3. CPANEL PAGE (ClientCpanel.tsx)
+   - GET /api/cpanel/status  → returns active hosting order with plan details or null
+     If null → show "Hosting Required" paywall
+   - GET /api/cpanel/stats   → calls WHM API to get disk, cpu, db, email usage
+     WHM API: GET https://{whm_host}:2087/json-api/accountsummary?user={cpanel_user}
+     Auth: Authorization: whm root:{whm_token}
+   - GET /api/cpanel/sso     → generate cPanel session URL via WHM API
+     WHM: POST /json-api/create_user_session?user={cpanel_user}&service=cpaneld
+     Returns: {url: "https://cpanel.../cpsess.../"}
+
+4. HOSTING PAGE (ClientHosting.tsx)
+   - GET /api/hosting/plans         → all active plans
+   - POST /api/hosting/purchase     → {plan_id, billing_cycle, domain}
+     Creates hosting_order (pending), creates invoice, returns invoice_id
+     After payment confirmation → auto-provisions via WHM API:
+       POST /json-api/createacct?username=X&domain=Y&plan=Z
+
+5. DOMAINS PAGE (ClientDomains.tsx)
+   - GET /api/domains               → user's domains with expiry, status
+   - POST /api/domains/renew        → {domain_id}
+     Creates invoice for renewal
+   - GET /api/domains/{id}/dns      → DNS records for domain
+   - PUT /api/domains/{id}/dns      → update DNS records
+
+6. DOMAIN SEARCH (DomainsPage.tsx — public)
+   - GET /api/domains/search?q=example
+     Check availability via registrar API (e.g., Resellerclub, Enom)
+     Returns: [{domain, ext, available, price, premium}]
+   - POST /api/domains/register     → {domain, extension, years}
+     Creates domain record + invoice
+
+7. INVOICES PAGE (ClientInvoices.tsx)
+   - GET /api/invoices              → all user invoices
+   - GET /api/invoices/{id}/pdf     → generate PDF (use TCPDF or Dompdf)
+
+8. PAYMENTS PAGE (ClientPayments.tsx)
+   - GET /api/payments              → user's payment history
+
+   M-Pesa Integration:
+   - POST /api/payments/mpesa       → {invoice_id, phone}
+     Steps: Get OAuth token from Daraja API → send STK push
+     Daraja: POST https://api.safaricom.co.ke/mpesa/stkpush/v1/processrequest
+   - POST /api/payments/mpesa/callback  → Safaricom callback
+     On success: update payment status, update invoice to 'paid',
+     activate hosting order, provision cPanel account via WHM
+
+   Stripe Integration:
+   - POST /api/payments/stripe/intent  → {invoice_id}
+     Create PaymentIntent via Stripe PHP SDK
+   - POST /api/payments/stripe/webhook → Stripe webhook
+     On payment_intent.succeeded: same activation flow as M-Pesa
+
+9. SUPPORT PAGE (ClientSupport.tsx)
+   - GET /api/support/tickets          → user's tickets
+   - POST /api/support/tickets         → {department, subject, message}
+     Auto-generates ticket_number (TKT-XXX)
+   - GET /api/support/tickets/{id}     → ticket detail + replies
+   - POST /api/support/tickets/{id}/reply → {message}
+
+10. PROFILE PAGE (ClientProfile.tsx)
+    - GET /api/profile                 → user profile data
+    - PUT /api/profile                 → {name, email, phone, company}
+    - PUT /api/profile/password        → {current_password, new_password}
+
+11. CONTACT PAGE (ContactPage.tsx — public)
+    - POST /api/contact                → {name, email, phone, message}
+      Stores in contact_messages, optionally sends email notification
+
+12. ADMIN DASHBOARD (AdminDashboard.tsx)
+    - GET /api/admin/dashboard → {
+        total_clients, hosting_services, active_domains,
+        open_invoices, monthly_revenue, open_tickets
+      }
+    - GET /api/admin/activity?limit=10 → recent activity log
+
+13. ADMIN PAGES (not yet built, but routes exist)
+    - GET/POST/PUT/DELETE /api/admin/hosting-plans → CRUD plans
+    - GET/PUT /api/admin/orders → list orders, activate/suspend
+    - GET/POST /api/admin/invoices → list, create manual invoices
+    - GET /api/admin/payments → all payments
+    - GET/PUT /api/admin/tickets → manage tickets
+    - GET /api/admin/clients → list all clients
+    - GET /api/admin/domains → list all domains
 
 ────────────────────────────────────────────
-API ENDPOINT: POST /api/payments/mpesa/callback
+PAYMENT → CPANEL AUTO-PROVISIONING FLOW
 ────────────────────────────────────────────
 
-No auth (Safaricom calls this). IP whitelist recommended.
-Logic:
-1. Parse Safaricom callback JSON
-2. If ResultCode = 0 (success):
-   a. Extract MpesaReceiptNumber, Amount, PhoneNumber
-   b. Find payment by checkout_request_id
-   c. Update payment: status='completed', mpesa_receipt, paid_at=NOW()
-   d. Update invoice: status='paid', paid_at=NOW()
-   e. Find related hosting_order
-   f. Call POST /api/provisioning/provision with hosting_order_id
-3. If ResultCode != 0: Update payment status='failed'
-4. Return { ResultCode: 0, ResultDesc: "Accepted" }
+1. User selects plan → POST /api/hosting/purchase
+   → Creates hosting_order (status: pending) + invoice (status: unpaid)
+2. User pays → POST /api/payments/mpesa or stripe
+3. Callback confirms payment →
+   a. payments.status = 'completed'
+   b. invoices.status = 'paid'
+   c. hosting_orders.status = 'active'
+   d. WHM API: POST /json-api/createacct
+      → creates cPanel account, returns username + URL
+   e. Update hosting_orders: cpanel_username, cpanel_url, starts_at, expires_at
+   f. Log activity
+   g. Send email confirmation to user
 
 ────────────────────────────────────────────
-API ENDPOINT: POST /api/payments/stripe/intent
+REACT FRONTEND CHANGES NEEDED
 ────────────────────────────────────────────
 
-Requires: JWT auth
-Input: { invoice_id: int }
-Logic:
-1. Load invoice, verify ownership and unpaid status
-2. Create Stripe PaymentIntent:
-   \Stripe\PaymentIntent::create([
-     'amount' => invoice.amount * 100 (cents),
-     'currency' => 'kes',
-     'metadata' => ['invoice_id' => invoice.id, 'user_id' => user.id]
-   ])
-3. Create payments record: status='pending', method='stripe', stripe_payment_id
-4. Return { client_secret: paymentIntent->client_secret }
+Create src/lib/api.ts:
+  const API_BASE = import.meta.env.VITE_API_URL || 'https://api.abancool.com';
+
+  export async function apiFetch(endpoint, options = {}) {
+    const token = localStorage.getItem('auth_token');
+    const res = await fetch(`${API_BASE}${endpoint}`, {
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+      ...options,
+    });
+    if (res.status === 401) { redirect to /client/login }
+    return res.json();
+  }
+
+Then replace all hardcoded data arrays in each page with:
+  const { data } = useQuery({ queryKey: ['invoices'], queryFn: () => apiFetch('/api/invoices') });
 
 ────────────────────────────────────────────
-API ENDPOINT: POST /api/payments/stripe/webhook
+SECURITY REQUIREMENTS
 ────────────────────────────────────────────
 
-No auth (Stripe calls this). Verify signature with STRIPE_WEBHOOK_SECRET.
-Logic:
-1. Verify webhook signature
-2. If event = payment_intent.succeeded:
-   a. Extract invoice_id from metadata
-   b. Update payment: status='completed', paid_at=NOW()
-   c. Update invoice: status='paid', paid_at=NOW()
-   d. Find related hosting_order
-   e. Call POST /api/provisioning/provision with hosting_order_id
-3. Return 200
+- All endpoints except /auth/*, /contact, /hosting/plans, /domains/search
+  require valid JWT
+- Admin endpoints require role = 'admin' check
+- Input validation with filter_var() and prepared statements (PDO)
+- Rate limiting on auth endpoints (5 attempts/minute)
+- CORS restricted to frontend domain
+- HTTPS only
+- M-Pesa callback IP whitelisting
+- Stripe webhook signature verification
 
 ────────────────────────────────────────────
-API ENDPOINT: POST /api/whmcs/sync
+ENVIRONMENT VARIABLES (.env)
 ────────────────────────────────────────────
 
-Internal only (called by provisioning flow).
-Input: { user_id: int, hosting_order_id: int }
-Logic:
-1. Load user and hosting order with plan
-2. Check if WHMCS client exists: WHMCSService::getClientByEmail(user.email)
-3. If not → WHMCSService::addClient(user data) → get whmcs_client_id
-4. WHMCSService::addOrder(whmcs_client_id, plan.whmcs_product_id, domain, billing_cycle, 'mailin')
-5. WHMCSService::acceptOrder(order_id)
-6. Store whmcs_client_id on users table (add column if needed)
+DB_HOST=localhost
+DB_NAME=abancool_db
+DB_USER=root
+DB_PASS=
+JWT_SECRET=your-256-bit-secret
+FRONTEND_URL=https://abancool.com
 
-────────────────────────────────────────────
-DATABASE CHANGES NEEDED
-────────────────────────────────────────────
-
-ALTER TABLE hosting_plans ADD COLUMN panel_type ENUM('cpanel','directadmin') DEFAULT 'cpanel';
-ALTER TABLE hosting_plans ADD COLUMN whmcs_product_id INT NULL;
-
-ALTER TABLE hosting_orders ADD COLUMN panel_type ENUM('cpanel','directadmin') DEFAULT 'cpanel';
-
-ALTER TABLE users ADD COLUMN whmcs_client_id INT NULL;
-
-ALTER TABLE payments ADD COLUMN checkout_request_id VARCHAR(100) NULL;
-
-────────────────────────────────────────────
-ENVIRONMENT VARIABLES (add to .env)
-────────────────────────────────────────────
-
-# WHM/cPanel
-WHM_HOST=server.abancool.com
-WHM_PORT=2087
-WHM_TOKEN=your-whm-api-token
-
-# DirectAdmin
-DA_HOST=da.abancool.com
-DA_PORT=2222
-DA_ADMIN_USER=admin
-DA_ADMIN_PASSWORD=
-DA_API_KEY=
-
-# WHMCS
-WHMCS_URL=https://billing.abancool.com/includes/api.php
-WHMCS_API_IDENTIFIER=
-WHMCS_API_SECRET=
-
-# M-Pesa
 MPESA_CONSUMER_KEY=
 MPESA_CONSUMER_SECRET=
 MPESA_SHORTCODE=174379
@@ -370,64 +443,20 @@ MPESA_PASSKEY=
 MPESA_CALLBACK_URL=https://api.abancool.com/api/payments/mpesa/callback
 MPESA_ENV=sandbox
 
-# Stripe
 STRIPE_SECRET_KEY=sk_test_...
 STRIPE_WEBHOOK_SECRET=whsec_...
 
-────────────────────────────────────────────
-FRONTEND BEHAVIOR (React — already built)
-────────────────────────────────────────────
+CPANEL_WHM_HOST=server.abancool.com
+CPANEL_WHM_PORT=2087
+CPANEL_WHM_TOKEN=
 
-ClientCpanel.tsx changes:
-1. On page load → GET /api/cpanel/status
-   - If no active hosting → show "Get Hosting" paywall
-   - If active → GET /api/cpanel/stats → render real usage bars
-2. "Open cPanel" / "Open DirectAdmin" button:
-   - GET /api/cpanel/sso → receive { url, panel }
-   - window.open(url, '_blank') → user auto-logged into panel
-   - Button label changes based on panel_type from stats response
+GOOGLE_CLIENT_ID=
 
-ClientPayments.tsx changes:
-1. M-Pesa: POST /api/payments/mpesa with { invoice_id, phone }
-   - Show "STK push sent, check your phone" message
-   - Poll invoice status every 5 seconds until paid
-2. Stripe: POST /api/payments/stripe/intent
-   - Use Stripe.js confirmCardPayment with client_secret
-   - On success, redirect to dashboard
-
-────────────────────────────────────────────
-COMPLETE FLOW: User Orders Hosting → Gets Panel Access
-────────────────────────────────────────────
-
-1. User visits /hosting → clicks "Order Now" on a plan
-2. Frontend creates invoice + hosting_order (pending) in DB
-3. User redirected to /client/dashboard/payments
-4. User pays via M-Pesa STK push or Stripe card
-5. Payment callback hits /api/payments/mpesa/callback or stripe/webhook
-6. Callback confirms payment → calls /api/provisioning/provision
-7. Provision endpoint:
-   a. Reads plan.panel_type (cpanel or directadmin)
-   b. Creates account on WHM or DirectAdmin server
-   c. Updates hosting_order: active, cpanel_username, cpanel_url, expires_at
-   d. Syncs to WHMCS (optional)
-8. User visits /client/dashboard/cpanel
-9. Page loads → GET /api/cpanel/stats → shows real disk/email/db usage
-10. User clicks "Open cPanel" or "Open DirectAdmin"
-11. GET /api/cpanel/sso → returns auto-login URL
-12. Browser opens new tab → user is inside their panel, no password needed
-
-────────────────────────────────────────────
-SECURITY
-────────────────────────────────────────────
-
-- All /api/cpanel/* and /api/provisioning/* require valid JWT
-- /api/payments/mpesa/callback: whitelist Safaricom IPs
-- /api/payments/stripe/webhook: verify Stripe signature
-- /api/whmcs/sync: internal only, not exposed to frontend
-- WHM/DA credentials never exposed to frontend
-- Rate limit STK push: max 1 per minute per user
-- All database queries use PDO prepared statements
+SMTP_HOST=
+SMTP_USER=
+SMTP_PASS=
+SMTP_PORT=587
 ```
 
-Copy and paste this entire prompt into Kiro. It covers all three panel integrations (cPanel via WHM, DirectAdmin, WHMCS), all payment flows (M-Pesa STK push, Stripe), auto-provisioning after payment, SSO auto-login for both panels, real usage stats, and the required database schema changes.
+This prompt gives Kiro everything needed: the full MySQL schema, every API endpoint mapped to each React page, the payment-to-cPanel auto-provisioning flow, directory structure, security requirements, and the frontend API helper pattern. Copy and paste it directly into Kiro to begin implementation.
 

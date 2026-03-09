@@ -9,42 +9,34 @@ import datacenter from "@/assets/hero-datacenter.jpg";
 const plans = [
   {
     name: "Starter",
-    price: "420",
-    period: "month",
-    yearly: "5,040",
-    features: ["2GB SSD Storage", "10GB Bandwidth", "Free SSL Certificate", "2 Email Accounts", "1 Website", "cPanel Access", "Weekly Backups"],
-  },
-  {
-    name: "Basic",
-    price: "800",
-    period: "month",
-    yearly: "9,600",
-    features: ["5GB SSD Storage", "20GB Bandwidth", "Free SSL Certificate", "5 Email Accounts", "2 Websites", "cPanel Access", "Weekly Backups", "Free Domain"],
+    price: "1,500",
+    period: "year",
+    monthly: "125",
+    features: ["1 Website", "30GB NVMe SSD Storage", "10 Email Accounts", "Free SSL Certificate", "LiteSpeed Server", "Website Builder Included", "Softaculous 1-Click Installer", "Weekly Backups", "5 MySQL Databases"],
   },
   {
     name: "Business",
-    price: "3,000",
+    price: "2,500",
     period: "year",
-    monthly: "250",
+    monthly: "209",
     popular: true,
-    features: ["15GB SSD Storage", "Unlimited Bandwidth", "Free SSL Certificate", "Unlimited Email Accounts", "5 Websites", "cPanel Access", "Daily Backups", "Free Domain", "Staging Environment"],
+    features: ["5 Websites", "60GB NVMe SSD Storage", "15 Email Accounts", "Free SSL Certificate", "LiteSpeed Server", "Website Builder Included", "Softaculous 1-Click Installer", "Daily Backups", "10 MySQL Databases"],
   },
   {
-    name: "Professional",
-    price: "3,500",
+    name: "Premium",
+    price: "4,000",
     period: "year",
-    monthly: "292",
-    features: ["30GB SSD Storage", "Unlimited Bandwidth", "Free SSL Certificate", "Unlimited Email Accounts", "10 Websites", "cPanel Access", "Daily Backups", "Free Domain", "Staging Environment", "Priority Support"],
+    monthly: "334",
+    features: ["Unlimited Websites", "80GB NVMe SSD Storage", "Unlimited Email Accounts", "Free SSL Certificates", "LiteSpeed Server", "Website Builder Included", "Softaculous 1-Click Installer", "Daily Backups", "Unlimited Databases"],
   },
   {
     name: "Enterprise",
-    price: "5,000",
+    price: "6,000",
     period: "year",
-    monthly: "417",
-    features: ["60GB SSD Storage", "Unlimited Bandwidth", "Free SSL Certificate", "Unlimited Email Accounts", "Unlimited Websites", "cPanel & WHM Access", "Real-time Backups", "Free Domain", "Dedicated IP", "Priority Support", "DDoS Protection"],
+    monthly: "500",
+    features: ["Unlimited Websites", "Unlimited NVMe SSD Storage", "Unlimited Email Accounts", "Unlimited Databases", "Free SSL Certificates", "LiteSpeed Server", "Website Builder Included", "Softaculous 1-Click Installer", "Daily Backups", "Priority Support"],
   },
 ];
-
 const features = [
   { icon: Zap, title: "Lightning Fast", desc: "NVMe SSD storage for blazing-fast load times" },
   { icon: Shield, title: "DDoS Protection", desc: "Enterprise-grade security for your websites" },
@@ -114,7 +106,7 @@ export default function HostingPage() {
             Premium <span className="text-accent">Hosting</span> Plans
           </h1>
           <p className="text-hero-foreground/70 text-lg max-w-2xl mt-4">
-            Fast, secure, and reliable SSD hosting with 99.9% uptime. Starting from KSh 420/month. Ready for WHMCS backend integration.
+            Fast, secure, and reliable NVMe SSD hosting with LiteSpeed servers and 99.9% uptime. Starting from KSh 1,500/year.
           </p>
           <div className="flex flex-wrap gap-4 mt-8">
             <a href="#plans">
@@ -159,7 +151,7 @@ export default function HostingPage() {
             <p className="text-muted-foreground mt-3 max-w-lg mx-auto">All plans include free setup, cPanel, and 30-day money back guarantee.</p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-0 border border-border">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-0 border border-border">
             {plans.map((plan, i) => (
               <motion.div
                 key={plan.name}
@@ -186,11 +178,6 @@ export default function HostingPage() {
                   {plan.monthly && (
                     <div className={`text-xs mb-6 ${plan.popular ? "text-hero-foreground/40" : "text-muted-foreground/60"}`}>
                       or KSh {plan.monthly}/month
-                    </div>
-                  )}
-                  {plan.yearly && (
-                    <div className={`text-xs mb-6 ${plan.popular ? "text-hero-foreground/40" : "text-muted-foreground/60"}`}>
-                      or KSh {plan.yearly}/year
                     </div>
                   )}
                 </div>
@@ -257,16 +244,16 @@ export default function HostingPage() {
               </thead>
               <tbody>
                 {[
-                  { feature: "Storage", values: ["2GB", "5GB", "15GB", "30GB", "60GB"] },
-                  { feature: "Bandwidth", values: ["10GB", "20GB", "Unlimited", "Unlimited", "Unlimited"] },
-                  { feature: "Websites", values: ["1", "2", "5", "10", "Unlimited"] },
-                  { feature: "Email Accounts", values: ["2", "5", "Unlimited", "Unlimited", "Unlimited"] },
-                  { feature: "Free SSL", values: ["✓", "✓", "✓", "✓", "✓"] },
-                  { feature: "Daily Backups", values: ["✗", "✗", "✓", "✓", "✓"] },
-                  { feature: "Free Domain", values: ["✗", "✓", "✓", "✓", "✓"] },
-                  { feature: "Staging", values: ["✗", "✗", "✓", "✓", "✓"] },
-                  { feature: "Priority Support", values: ["✗", "✗", "✗", "✓", "✓"] },
-                  { feature: "Dedicated IP", values: ["✗", "✗", "✗", "✗", "✓"] },
+                  { feature: "Storage", values: ["30GB NVMe", "60GB NVMe", "80GB NVMe", "Unlimited NVMe"] },
+                  { feature: "Websites", values: ["1", "5", "Unlimited", "Unlimited"] },
+                  { feature: "Email Accounts", values: ["10", "15", "Unlimited", "Unlimited"] },
+                  { feature: "Databases", values: ["5", "10", "Unlimited", "Unlimited"] },
+                  { feature: "Free SSL", values: ["✓", "✓", "✓", "✓"] },
+                  { feature: "LiteSpeed Server", values: ["✓", "✓", "✓", "✓"] },
+                  { feature: "Website Builder", values: ["✓", "✓", "✓", "✓"] },
+                  { feature: "Softaculous", values: ["✓", "✓", "✓", "✓"] },
+                  { feature: "Daily Backups", values: ["✗", "✓", "✓", "✓"] },
+                  { feature: "Priority Support", values: ["✗", "✗", "✗", "✓"] },
                 ].map((row) => (
                   <tr key={row.feature} className="border-b last:border-0">
                     <td className="p-4 font-medium">{row.feature}</td>
