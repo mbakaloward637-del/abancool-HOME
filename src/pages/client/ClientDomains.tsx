@@ -1,75 +1,94 @@
-import { useState, useEffect } from "react";
-import { Button } from "@/components/ui/button";
-import { supabase } from "@/integrations/supabase/client";
-import { Globe, Loader2 } from "lucide-react";
+import { useEffect, useState } from "react";
+import { fetchDomains } from "@/lib/whmcs-api";
+import { Globe, ExternalLink, Loader2 } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 
 export default function ClientDomains() {
   const [domains, setDomains] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    async function load() {
-      const { data } = await supabase.from("domains").select("*").order("created_at", { ascending: false });
-      setDomains(data || []);
-      setLoading(false);
-    }
-    load();
+    fetchDomains()
+      .then(setDomains)
+      .catch(console.error)
+      .finally(() => setLoading(false));
   }, []);
 
-  if (loading) {
-    return <div className="flex items-center justify-center py-20"><Loader2 className="w-6 h-6 animate-spin text-accent" /></div>;
-  }
+  const statusColor = (status: string) => {
+    switch (status?.toLowerCase()) {
+      case "active": return "bg-green-100 text-green-700 border-green-200";
+      case "expired": return "bg-destructive/10 text-destructive border-destructive/20";
+      case "pending": return "bg-accent/10 text-accent border-accent/20";
+      default: return "bg-muted text-muted-foreground border-border";
+    }
+  };
 
   return (
     <div className="space-y-6">
-      <h1 className="font-heading text-2xl font-bold">Domain Management</h1>
+      <div className="flex items-center justify-between flex-wrap gap-4">
+        <div>
+          <h1 className="font-heading text-2xl lg:text-3xl font-extrabold">My Domains</h1>
+          <p className="text-muted-foreground text-sm mt-1">Manage your registered domains</p>
+        </div>
+        <a
+          href="https://abancool.com/clients/cart.php?a=add&domain=register"
+          className="inline-flex items-center gap-2 px-4 py-2.5 bg-accent text-accent-foreground rounded-sm text-sm font-semibold hover:bg-accent/90 transition-colors"
+        >
+          Register New Domain <ExternalLink className="w-3.5 h-3.5" />
+        </a>
+      </div>
 
-      {domains.length === 0 ? (
-        <div className="rounded-xl bg-card border card-shadow p-10 text-center space-y-4">
-          <Globe className="w-12 h-12 text-muted-foreground mx-auto" />
-          <h2 className="font-heading text-xl font-semibold">No Domains Yet</h2>
-          <p className="text-muted-foreground max-w-md mx-auto">Search and register your first domain to get started.</p>
-          <Button onClick={() => window.location.href = "/domains"} className="bg-accent text-accent-foreground hover:bg-accent/90">
-            Search Domains
-          </Button>
-        </div>
-      ) : (
-        <div className="rounded-xl bg-card border card-shadow overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b bg-muted/50">
-                <th className="text-left p-3 font-medium text-muted-foreground">Domain</th>
-                <th className="text-left p-3 font-medium text-muted-foreground">Expiry</th>
-                <th className="text-left p-3 font-medium text-muted-foreground">Nameservers</th>
-                <th className="text-left p-3 font-medium text-muted-foreground">Auto Renew</th>
-                <th className="text-left p-3 font-medium text-muted-foreground">Status</th>
-                <th className="text-left p-3 font-medium text-muted-foreground">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {domains.map((d: any) => (
-                <tr key={d.id} className="border-b last:border-0">
-                  <td className="p-3 font-medium">{d.name}{d.extension}</td>
-                  <td className="p-3">{d.expires_at ? new Date(d.expires_at).toLocaleDateString() : "—"}</td>
-                  <td className="p-3 text-muted-foreground">{d.nameservers}</td>
-                  <td className="p-3">{d.auto_renew ? "Yes" : "No"}</td>
-                  <td className="p-3">
-                    <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
-                      d.status === "active" ? "bg-green-100 text-green-700" : "bg-yellow-100 text-yellow-700"
-                    }`}>{d.status}</span>
-                  </td>
-                  <td className="p-3">
-                    <div className="flex gap-1">
-                      <Button size="sm" variant="outline" className="text-xs h-7">Renew</Button>
-                      <Button size="sm" variant="outline" className="text-xs h-7">DNS</Button>
-                    </div>
-                  </td>
+      <div className="bg-card rounded-sm border border-border overflow-hidden">
+        {loading ? (
+          <div className="flex items-center justify-center py-20">
+            <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+          </div>
+        ) : domains.length === 0 ? (
+          <div className="text-center py-20">
+            <Globe className="w-10 h-10 mx-auto text-muted-foreground/40 mb-3" />
+            <p className="text-muted-foreground">No domains found</p>
+            <a href="https://abancool.com/clients/cart.php?a=add&domain=register" className="text-accent text-sm hover:underline mt-1 inline-block">
+              Register a domain →
+            </a>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-border bg-muted/30">
+                  <th className="text-left px-6 py-3.5 font-semibold text-foreground">Domain</th>
+                  <th className="text-left px-6 py-3.5 font-semibold text-foreground">Expiry Date</th>
+                  <th className="text-left px-6 py-3.5 font-semibold text-foreground">Auto Renew</th>
+                  <th className="text-left px-6 py-3.5 font-semibold text-foreground">Status</th>
+                  <th className="text-right px-6 py-3.5 font-semibold text-foreground">Action</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
+              </thead>
+              <tbody>
+                {domains.map((d: any) => (
+                  <tr key={d.id} className="border-b border-border last:border-0 hover:bg-muted/20 transition-colors">
+                    <td className="px-6 py-4 font-medium">{d.domainname}</td>
+                    <td className="px-6 py-4 text-muted-foreground">{d.expirydate}</td>
+                    <td className="px-6 py-4 text-muted-foreground">{d.autorenew ? "Yes" : "No"}</td>
+                    <td className="px-6 py-4">
+                      <Badge variant="outline" className={statusColor(d.status)}>{d.status}</Badge>
+                    </td>
+                    <td className="px-6 py-4 text-right">
+                      <a
+                        href={`https://abancool.com/clients/clientarea.php?action=domaindetails&id=${d.id}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1.5 text-accent hover:underline text-sm font-medium"
+                      >
+                        Manage <ExternalLink className="w-3.5 h-3.5" />
+                      </a>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
