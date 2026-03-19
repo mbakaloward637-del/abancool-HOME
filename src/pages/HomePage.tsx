@@ -72,7 +72,119 @@ const fadeRight = {
   visible: { opacity: 1, x: 0, transition: { duration: 0.7, ease: [0.25, 0.46, 0.45, 0.94] as const } },
 };
 
-export default function HomePage() {
+/* ── Dynamic Hosting Preview ── */
+function HostingPreview() {
+  const [plans, setPlans] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchProducts()
+      .then((products) => {
+        // Show up to 3 plans
+        setPlans(products.slice(0, 3));
+      })
+      .catch(() => setPlans([]))
+      .finally(() => setLoading(false));
+  }, []);
+
+  if (loading) {
+    return (
+      <section className="section-padding bg-background">
+        <div className="container-max text-center">
+          <Loader2 className="w-8 h-8 animate-spin text-accent mx-auto" />
+          <p className="text-muted-foreground mt-4 text-sm">Loading hosting plans...</p>
+        </div>
+      </section>
+    );
+  }
+
+  if (plans.length === 0) {
+    return (
+      <section className="section-padding bg-background">
+        <div className="container-max text-center">
+          <span className="section-label justify-center">Hosting Plans</span>
+          <h2 className="font-heading text-3xl md:text-4xl lg:text-5xl font-bold mb-6">
+            Reliable & Fast <span className="text-accent">Web Hosting</span>
+          </h2>
+          <p className="text-muted-foreground mb-8 max-w-md mx-auto">
+            Explore our range of fast, secure hosting packages with 99.9% uptime.
+          </p>
+          <Link to="/hosting">
+            <Button className="bg-accent text-accent-foreground hover:bg-accent/90 font-semibold uppercase text-sm tracking-wider px-8 h-12 rounded-sm">
+              View Hosting Plans <ArrowRight className="ml-2 w-4 h-4" />
+            </Button>
+          </Link>
+        </div>
+      </section>
+    );
+  }
+
+  return (
+    <section className="section-padding bg-background">
+      <div className="container-max">
+        <div className="text-center mb-16">
+          <span className="section-label justify-center">Hosting Plans</span>
+          <h2 className="font-heading text-3xl md:text-4xl lg:text-5xl font-bold">
+            Reliable & Fast<br />
+            <span className="text-accent">Web Hosting</span>
+          </h2>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-0 max-w-4xl mx-auto border border-border">
+          {plans.map((plan: any, i: number) => {
+            const isPopular = i === 1;
+            const price = plan.pricing?.USD?.monthly || plan.pricing?.KES?.monthly || "—";
+            const features = plan.description
+              ? plan.description.split("\n").filter((l: string) => l.trim()).slice(0, 4)
+              : [];
+            return (
+              <motion.div
+                key={plan.pid || i}
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: true }}
+                custom={i}
+                variants={fadeUp}
+                className={`p-8 border-r last:border-r-0 ${isPopular ? "bg-hero text-hero-foreground relative" : "bg-card"}`}
+              >
+                {isPopular && (
+                  <span className="absolute top-0 right-0 bg-accent text-accent-foreground text-[10px] font-bold uppercase tracking-wider px-3 py-1">
+                    Popular
+                  </span>
+                )}
+                <h3 className="font-heading font-bold text-lg mb-1">{plan.name}</h3>
+                <div className="flex items-baseline gap-1 mb-6">
+                  <span className="text-3xl font-heading font-bold text-accent">{price}</span>
+                  <span className={`text-sm ${isPopular ? "text-hero-foreground/60" : "text-muted-foreground"}`}>/mo</span>
+                </div>
+                {features.length > 0 && (
+                  <ul className="space-y-3 mb-8">
+                    {features.map((f: string) => (
+                      <li key={f} className={`flex items-center gap-2 text-sm ${isPopular ? "text-hero-foreground/80" : "text-muted-foreground"}`}>
+                        <CheckCircle2 className="w-4 h-4 flex-shrink-0 text-accent" /> {f}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+                <Link to="/hosting">
+                  <Button className="w-full rounded-sm font-semibold uppercase text-xs tracking-wider bg-accent text-accent-foreground hover:bg-accent/90">
+                    Get Started
+                  </Button>
+                </Link>
+              </motion.div>
+            );
+          })}
+        </div>
+        <div className="text-center mt-8">
+          <Link to="/hosting" className="text-accent text-sm font-semibold uppercase tracking-wider hover:underline inline-flex items-center gap-1">
+            View all plans <ArrowRight className="w-3 h-3" />
+          </Link>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+
   return (
     <>
       {/* ═══════ HERO ═══════ */}
